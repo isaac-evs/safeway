@@ -24,12 +24,13 @@ RETRY_DELAY = 10
 
 
 RSS_FEEDS = [
-    'https://www.reforma.com/rss/portada.xml',
-    'https://www.excelsior.com.mx/rss.xml',
-    'https://www.milenio.com/rss',
-    'https://www.informador.mx/rss/ultimas-noticias.xml',
-    'https://www.debate.com.mx/rss/feed.xml',
-    'https://heraldodemexico.com.mx/rss/feed.html?r=4'
+    'https://www.mural.com.mx/rss/portada.xml',
+    'https://www.elnorte.com/rss/portada.xml',
+    'https://www.jornada.com.mx/rss/estados.xml?v=1'
+    'https://www.reforma.com/rss/nacional.xml'
+    'https://www.inegi.org.mx/rss/noticias/xmlfeeds?p='
+    'https://www.reforma.com/rss/nacional.xml'
+    'https://www.reforma.com/rss/nacional.xml'
 ]
 
 VALID_CATEGORIES = ['crime', 'infrastructure', 'hazard', 'social']

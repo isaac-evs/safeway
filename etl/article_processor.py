@@ -81,13 +81,20 @@ class ArticleProcessor:
         """
 
         user_message = f"""
-        Extrae la ubicación más específica mencionada en este artículo:
+        Extrae la ubicación más específica mencionada en este artículo, puedes deducirlo si no trae explicitamente:
 
         Título: {article['title']}
         Contenido: {article['description']}
 
-        Responde SOLAMENTE con el nombre de la ubicación.
-        Si no hay ubicación clara, responde exactamente con "NO_LOCATION".
+        Responde SOLAMENTE con el nombre de la ubicación, en cuanto más exacto mejor.
+
+        Ejemplo:
+
+        Calle Zamora, Colonia Condesa, Ciudad de Mexico
+
+        Si es internacional o no hay ubicación mexicana clara, responde exactamente con "NO_LOCATION".
+
+        Debes evitar a toda costa poner "NO_LOCATION", solamente en expeciones que la noticia sea de otro pais que no es Mexico o en raros casos que la notiica no tenga ubicacion.
         """
 
         try:
@@ -134,8 +141,8 @@ class ArticleProcessor:
                             ]
                         }
                     ],
-                    "max_tokens": 10,
-                    "temperature": 0,
+                    "max_tokens": 20,
+                    "temperature": 0.5,
                     "top_p": 1.0
                 }
 

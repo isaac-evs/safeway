@@ -24,17 +24,21 @@ class NewsController:
         result = await db.execute(query)
         news_items = result.fetchall()
 
-        formatted_news = [
-            {
+        formatted_news = []
+        for item in news_items:
+            # Truncate description to 250 characters, add ellipsis if needed
+            desc = item.description or ""
+            if len(desc) > 250:
+                desc = desc[:250] + "..."
+
+            formatted_news.append({
                 "id": item.id,
                 "title": item.title,
-                "description": item.description,
+                "description": desc,
                 "coordinates": [item.longitude, item.latitude],
                 "type": item.type,
                 "date": item.date.isoformat() if item.date else None,
                 "url": item.url
-            }
-            for item in news_items
-        ]
+            })
 
         return formatted_news

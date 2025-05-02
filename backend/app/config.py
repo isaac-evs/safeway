@@ -13,3 +13,6 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 settings = Settings()
+
+# in your config.py, right after you load Settings:
+print("🔍 Loaded .env → API_PREFIX =", settings.API_PREFIX)
