@@ -8,6 +8,11 @@ export default function EventDetails({ event }) {
     setSelectedEvent(null);
   };
 
+  const handleReadMore = () => {
+    // Open the URL in a new tab
+    window.open(event.url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <motion.div
       className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md"
@@ -45,12 +50,10 @@ export default function EventDetails({ event }) {
             </svg>
           </button>
         </div>
-
         <div className="mb-4">
           <p className="mb-2">{event.description}</p>
           <p className="text-sm opacity-75">Date: {event.date}</p>
         </div>
-
         <div className="flex justify-between">
           <span
             className={`px-3 py-1 rounded-full text-sm ${getEventTypeStyles(event.type)}`}
@@ -65,6 +68,7 @@ export default function EventDetails({ event }) {
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleReadMore}
           >
             Read More
           </motion.button>
@@ -83,6 +87,5 @@ function getEventTypeStyles(type) {
     social: "bg-green-100 text-green-800",
     default: "bg-gray-100 text-gray-800",
   };
-
   return styles[type] || styles.default;
 }
