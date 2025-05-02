@@ -27,10 +27,6 @@ RSS_FEEDS = [
     'https://www.mural.com.mx/rss/portada.xml',
     'https://www.elnorte.com/rss/portada.xml',
     'https://www.jornada.com.mx/rss/estados.xml?v=1'
-    'https://www.reforma.com/rss/nacional.xml'
-    'https://www.inegi.org.mx/rss/noticias/xmlfeeds?p='
-    'https://www.reforma.com/rss/nacional.xml'
-    'https://www.reforma.com/rss/nacional.xml'
 ]
 
 VALID_CATEGORIES = ['crime', 'infrastructure', 'hazard', 'social']
