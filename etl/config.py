@@ -29,7 +29,6 @@ RSS_FEEDS = [
     'https://www.milenio.com/rss',
     'https://www.informador.mx/rss/ultimas-noticias.xml',
     'https://www.debate.com.mx/rss/feed.xml',
-    'https://editorial.aristeguinoticias.com/category/mexico/feed/'
     'https://heraldodemexico.com.mx/rss/feed.html?r=4'
 ]
 

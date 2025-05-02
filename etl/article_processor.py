@@ -83,7 +83,7 @@ class ArticleProcessor:
         def _call_bedrock():
             request = {
                 "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
-                "max_tokens": 500,
+                "max_tokens_to_sample": 500,
                 "temperature": 0,
                 "top_p": 0.9,
                 "stop_sequences": ["\n\nHuman:"]

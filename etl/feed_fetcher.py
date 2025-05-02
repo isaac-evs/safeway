@@ -1,7 +1,6 @@
 import feedparser
 import asyncio
 import logging
-import time
 from datetime import datetime
 import aiohttp
 from config import RSS_FEEDS, POLLING_INTERVAL, MAX_RETRIES, RETRY_DELAY
@@ -10,14 +9,30 @@ logger = logging.getLogger(__name__)
 
 class FeedFetcher:
     def __init__(self, db):
+        # Store feed URLs and database handle
         self.feeds = RSS_FEEDS
         self.db = db
         self.processed_urls = set()
         self.session = None
 
+        # Common headers to avoid 403 responses
+        self.headers = {
+            'User-Agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/90.0.4430.93 Safari/537.36'
+            ),
+            'Accept': 'application/rss+xml, application/xml;q=0.9, */*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Referer': ''  # will set dynamically
+        }
+
     async def initialize(self):
-        self.session = aiohttp.ClientSession()
-        self.processed_urls = self.db.get_processed_urls()
+        # Initialize HTTP session with default headers and persistent connector
+        connector = aiohttp.TCPConnector(limit=10, force_close=False)
+        self.session = aiohttp.ClientSession(connector=connector, headers=self.headers)
+        self.processed_urls = self.db.get_processed_urls() or set()
         logger.info(f"Initialized feed fetcher with {len(self.processed_urls)} existing articles")
 
     async def close(self):
@@ -25,21 +40,40 @@ class FeedFetcher:
             await self.session.close()
 
     async def fetch_feed(self, feed_url):
-        for attempt in range(MAX_RETRIES):
-            try:
-                async with self.session.get(feed_url, timeout=30) as response:
-                    if response.status == 200:
-                        content = await response.text()
-                        return feedparser.parse(content)
-                    else:
-                        logger.warning(f"Failed to fetch feed {feed_url}, status code: {response.status}")
-            except Exception as e:
-                logger.error(f"Error fetching feed {feed_url}: {e}")
+        # Validate URL format
+        if not feed_url.startswith('http'):
+            logger.error(f"Invalid feed URL: {feed_url}")
+            return None
 
-            if attempt < MAX_RETRIES - 1:
+        last_error = None
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                # Update Referer dynamically to feed's domain
+                self.session.headers['Referer'] = feed_url.rsplit('/', 1)[0]
+
+                async with self.session.get(feed_url, timeout=30) as response:
+                    status = response.status
+                    if status == 200:
+                        # Read raw bytes and let feedparser handle encoding
+                        raw = await response.read()
+                        return feedparser.parse(raw)
+                    elif status == 403:
+                        logger.warning(f"403 Forbidden for {feed_url} (attempt {attempt})")
+                    else:
+                        logger.warning(f"Unexpected status {status} fetching {feed_url} (attempt {attempt})")
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout fetching {feed_url} (attempt {attempt})")
+            except aiohttp.ClientError as e:
+                logger.error(f"Client error fetching {feed_url} on attempt {attempt}: {e}")
+                last_error = e
+            except Exception as e:
+                logger.exception(f"Unhandled error fetching {feed_url} on attempt {attempt}: {e}")
+                last_error = e
+
+            if attempt < MAX_RETRIES:
                 await asyncio.sleep(RETRY_DELAY)
 
-        logger.error(f"Failed to fetch feed after {MAX_RETRIES} attempts: {feed_url}")
+        logger.error(f"Failed to fetch feed after {MAX_RETRIES} attempts: {feed_url}. Last error: {last_error}")
         return None
 
     async def fetch_all_feeds(self):
@@ -47,73 +81,68 @@ class FeedFetcher:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         new_articles = []
-        for i, result in enumerate(results):
+        for idx, result in enumerate(results):
+            feed_url = self.feeds[idx]
             if isinstance(result, Exception):
-                logger.error(f"Exception fetching feed {self.feeds[i]}: {result}")
+                logger.error(f"Exception fetching feed {feed_url}: {result}")
+                continue
+            if not result or not hasattr(result, 'entries'):
                 continue
 
-            if not result:
-                continue
-
-            feed_source = self.feeds[i]
-            source_name = result.feed.title if hasattr(result.feed, 'title') else feed_source
-
+            source_name = getattr(result.feed, 'title', feed_url)
             for entry in result.entries:
                 article = self._parse_entry(entry, source_name)
                 if article and article['url'] not in self.processed_urls:
                     new_articles.append(article)
                     self.processed_urls.add(article['url'])
 
-        logger.info(f"Fetched {len(new_articles)} new articles")
+        logger.info(f"Fetched {len(new_articles)} new articles from {len(self.feeds)} feeds")
         return new_articles
 
     def _parse_entry(self, entry, source_name):
         try:
-            url = entry.link if hasattr(entry, 'link') else None
+            url = getattr(entry, 'link', None)
             if not url:
                 return None
 
+            # Parse publication date
             published = None
-            for date_field in ['published', 'pubDate', 'updated']:
-                if hasattr(entry, date_field):
-                    try:
-                        date_str = getattr(entry, date_field)
-                        struct_time = getattr(entry, f"{date_field}_parsed", None)
-                        if struct_time:
-                            published = datetime(*struct_time[:6]).date()
-                        else:
-                            for fmt in ["%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z"]:
-                                try:
-                                    published = datetime.strptime(date_str, fmt).date()
-                                    break
-                                except ValueError:
-                                    continue
-                    except Exception:
-                        pass
+            for field in ('published_parsed', 'updated_parsed'):
+                struct_time = getattr(entry, field, None)
+                if struct_time:
+                    published = datetime(*struct_time[:6]).date()
+                    break
 
-                    if published:
-                        break
+            # Fallback to string fields
+            if not published:
+                for field in ('published', 'pubDate', 'updated'):
+                    date_str = getattr(entry, field, None)
+                    if date_str:
+                        try:
+                            published = datetime.fromisoformat(date_str).date()
+                            break
+                        except Exception:
+                            continue
 
             if not published:
-                published = datetime.now().date()
+                published = datetime.utcnow().date()
 
-            title = entry.title if hasattr(entry, 'title') else None
+            title = getattr(entry, 'title', None)
             description = None
-
-            for desc_field in ['description', 'summary', 'content']:
-                if hasattr(entry, desc_field):
-                    description = getattr(entry, desc_field)
+            for desc in ('description', 'summary', 'content'):
+                val = getattr(entry, desc, None)
+                if val:
+                    description = val
                     break
+
+            # Normalize content lists
+            if isinstance(description, list):
+                description = ''.join(
+                    item.get('value', '') for item in description if isinstance(item, dict)
+                )
 
             if not title or not description:
                 return None
-
-            if isinstance(description, list):
-                content_value = ""
-                for item in description:
-                    if isinstance(item, dict) and 'value' in item:
-                        content_value += item['value']
-                description = content_value if content_value else str(description)
 
             return {
                 'news_source': source_name,
@@ -129,17 +158,15 @@ class FeedFetcher:
     async def poll_feeds_continuously(self, article_queue):
         try:
             await self.initialize()
-
             while True:
                 try:
                     new_articles = await self.fetch_all_feeds()
                     for article in new_articles:
                         await article_queue.put(article)
-
-                    logger.info(f"Added {len(new_articles)} articles to processing queue")
-                    await asyncio.sleep(POLLING_INTERVAL)
+                    logger.info(f"Queued {len(new_articles)} new articles")
                 except Exception as e:
-                    logger.error(f"Error in feed polling cycle: {e}")
-                    await asyncio.sleep(RETRY_DELAY)
+                    logger.error(f"Polling cycle error: {e}")
+                finally:
+                    await asyncio.sleep(POLLING_INTERVAL)
         finally:
             await self.close()
