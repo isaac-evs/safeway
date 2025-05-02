@@ -14,27 +14,57 @@ class ArticleProcessor:
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY
         )
+        # Configure logging for debugging
+        logger.setLevel(logging.DEBUG)
+        # Add console handler if not already present
+        if not logger.handlers:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            console_handler.setFormatter(formatter)
+            logger.addHandler(console_handler)
         logger.info("Initialized ArticleProcessor with Claude via AWS Bedrock")
 
     async def classify_article(self, article):
         """Classify article using Claude"""
-        prompt = f"""
-        You are an expert in analyzing news articles from Mexico. Your task is to categorize the following news article into one of these categories: crime, infrastructure, hazard (e.g., weather alerts, fires, natural disasters), or social (e.g., political unrest, protests).
+        system_prompt = """You are an expert in analyzing Spanish news articles from Mexico. Your task is to categorize news articles.
 
-        If the article doesn't clearly fit into any of these categories, respond with "DISCARD".
+        You MUST only respond with one of these exact words:
+        - crime: for crime-related news
+        - infrastructure: for infrastructure-related news
+        - hazard: for weather alerts, fires, natural disasters
+        - social: for political unrest, protests, social events
+        - DISCARD: if the article doesn't fit any category
 
-        News Title: {article['title']}
-        News Content: {article['description']}
+        IMPORTANT: You must ONLY return one of these exact words: crime, infrastructure, hazard, social, or DISCARD.
+        No explanation, no additional text, no Spanish translations. Only one word from the specified list."""
 
-        Return only the category name (crime, infrastructure, hazard, social) or "DISCARD" without any additional text.
+        user_message = f"""
+        Analiza y clasifica el siguiente artículo de noticias en español:
+
+        Título: {article['title']}
+        Contenido: {article['description']}
+
+        Responde SOLAMENTE con una de estas palabras exactas:
+        - crime (para delitos, crímenes, inseguridad)
+        - infrastructure (para infraestructura, construcciones)
+        - hazard (para alertas meteorológicas, incendios, desastres naturales)
+        - social (para disturbios políticos, protestas, eventos sociales)
+        - DISCARD (si no encaja en ninguna categoría)
         """
 
         try:
-            category = await self._invoke_claude(prompt)
+            category = await self._invoke_claude_messages(system_prompt, user_message)
             category = category.strip().lower()
 
+            # Log the exact response for debugging
+            logger.debug(f"Raw classification response: '{category}'")
+
+            # Clean up the response (remove quotes, punctuation, whitespace)
+            category = category.strip().lower().replace('"', '').replace("'", "").strip('.')
+
             if category not in VALID_CATEGORIES:
-                logger.info(f"Article discarded - invalid category: {category}")
+                logger.info(f"Article discarded - invalid category: '{category}'")
                 return None
 
             article['type'] = category
@@ -45,28 +75,31 @@ class ArticleProcessor:
 
     async def extract_location(self, article):
         """Extract specific location from article using Claude"""
-        prompt = f"""
-        You are an expert in analyzing news articles from Mexico. Your task is to extract the most specific location mentioned in the following news article.
+        system_prompt = """You are an expert in analyzing Spanish news articles from Mexico. Your task is to extract the most specific location mentioned.
 
-        The location should be as specific as possible (e.g., street, neighborhood, city, or state in Mexico).
+        Return ONLY the location name with NO explanation or additional text.
+        """
 
-        If multiple locations are mentioned, extract the main or most relevant one.
-        If no clear location in Mexico is mentioned, respond with "NO_LOCATION".
+        user_message = f"""
+        Extrae la ubicación más específica mencionada en este artículo:
 
-        News Title: {article['title']}
-        News Content: {article['description']}
+        Título: {article['title']}
+        Contenido: {article['description']}
 
-        Return only the location name without any additional text.
+        Responde SOLAMENTE con el nombre de la ubicación.
+        Si no hay ubicación clara, responde exactamente con "NO_LOCATION".
         """
 
         try:
-            location = await self._invoke_claude(prompt)
+            location = await self._invoke_claude_messages(system_prompt, user_message)
             location = location.strip()
+            logger.debug(f"Raw location response: '{location}'")
 
-            if location == "NO_LOCATION":
+            if location.lower() == "no_location" or not location:
                 logger.info(f"Article discarded - no location extracted: {article['title']}")
                 return None
 
+            # Add Mexico if not already present and not NO_LOCATION
             if not "mexico" in location.lower() and not "méxico" in location.lower():
                 location += ", Mexico"
 
@@ -74,30 +107,64 @@ class ArticleProcessor:
             return article
         except Exception as e:
             logger.error(f"Error extracting location: {e}")
-            return None
+            # Don't discard the article if location extraction fails
+            article['location'] = "Mexico"  # Default to country level
+            return article
 
-    async def _invoke_claude(self, prompt):
-        """Invoke Claude model via AWS Bedrock"""
+    async def _invoke_claude_messages(self, system_prompt, user_message):
+        """Invoke Claude model via AWS Bedrock Messages API"""
         loop = asyncio.get_event_loop()
 
-        def _call_bedrock():
-            request = {
-                "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
-                "max_tokens_to_sample": 500,
-                "temperature": 0,
-                "top_p": 0.9,
-                "stop_sequences": ["\n\nHuman:"]
-            }
+        def _call_bedrock_messages():
+            try:
+                logger.debug(f"Sending request to Claude with system prompt: {system_prompt[:50]}...")
+                logger.debug(f"User message: {user_message[:50]}...")
 
-            response = self.bedrock_runtime.invoke_model(
-                modelId=CLAUDE_MODEL_ID,
-                body=json.dumps(request)
-            )
+                request = {
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "system": system_prompt,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": user_message
+                                }
+                            ]
+                        }
+                    ],
+                    "max_tokens": 10,
+                    "temperature": 0,
+                    "top_p": 1.0
+                }
 
-            response_body = json.loads(response['body'].read())
-            return response_body['completion'].strip()
+                # Try with the non-streaming API first
+                response = self.bedrock_runtime.invoke_model(
+                    modelId=CLAUDE_MODEL_ID,
+                    body=json.dumps(request)
+                )
 
-        return await loop.run_in_executor(None, _call_bedrock)
+                response_body = json.loads(response['body'].read())
+                if 'content' in response_body and response_body['content']:
+                    content_items = response_body['content']
+                    full_response = ""
+                    for item in content_items:
+                        if item['type'] == 'text':
+                            full_response += item['text']
+
+                    logger.debug(f"Full response from Claude: '{full_response}'")
+                    return full_response.strip()
+                else:
+                    logger.error("Response from Claude doesn't contain expected content structure")
+                    return ""
+
+            except Exception as e:
+                logger.error(f"Error calling Bedrock: {e}")
+                # Fallback to a default category to avoid discarding all articles
+                return "social"  # Default fallback category
+
+        return await loop.run_in_executor(None, _call_bedrock_messages)
 
     async def process_articles(self, article_queue, geocoder, db):
         """Process articles from the queue"""
