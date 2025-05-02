@@ -85,7 +85,7 @@ export default function useMapbox(events) {
         }
       });
     }
-  }, [darkMode]);
+  }, [darkMode, events]);
 
   // Get SVG icon path based on event type
   const getEventIcon = (type) => {
@@ -110,7 +110,7 @@ export default function useMapbox(events) {
 
   // Function to add markers
   const addMarkers = () => {
-    if (!map.current) return;
+    if (!map.current || !events) return;
 
     // Clear existing markers
     markers.current.forEach((marker) => marker.remove());
@@ -118,6 +118,19 @@ export default function useMapbox(events) {
 
     // Add new markers
     events.forEach((event) => {
+      // Check if event has valid coordinates
+      if (
+        !event.coordinates ||
+        !Array.isArray(event.coordinates) ||
+        event.coordinates.length !== 2
+      ) {
+        console.warn(
+          `Event ${event.id} has invalid coordinates:`,
+          event.coordinates,
+        );
+        return;
+      }
+
       // Create a marker element
       const el = document.createElement("div");
       el.className = "event-marker";
@@ -189,8 +202,14 @@ export default function useMapbox(events) {
   // Add event markers to map
   useEffect(() => {
     if (!mapLoaded || !events || !map.current) return;
-    addMarkers();
-  }, [events, mapLoaded, setSelectedEvent, setEventsLoaded]);
+
+    // Add a small delay to ensure map is fully loaded
+    const timer = setTimeout(() => {
+      addMarkers();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [events, mapLoaded, setEventsLoaded]);
 
   return { mapContainer, map };
 }

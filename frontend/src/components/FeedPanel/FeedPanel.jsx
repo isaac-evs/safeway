@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/AppContext";
 
 export default function FeedPanel() {
-  const { darkMode, setSelectedEvent, mockEvents } = useAppContext();
+  // Replace mockEvents with events from context
+  const { darkMode, setSelectedEvent, events } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
 
   const togglePanel = () => {
@@ -65,7 +66,7 @@ export default function FeedPanel() {
             <h2 className="text-xl font-bold mb-4 text-center">Recent News</h2>
 
             <div className="space-y-4">
-              {mockEvents.map((event) => (
+              {events.map((event) => (
                 <motion.div
                   key={event.id}
                   onClick={() => handleEventClick(event)}

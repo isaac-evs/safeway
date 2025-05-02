@@ -8,29 +8,37 @@ import LoadingScreen from "./components/UI/LoadingScreen";
 import FeedPanel from "./components/FeedPanel/FeedPanel";
 
 function AppContent() {
-  const { showWelcome, eventsLoaded } = useAppContext();
+  const { showWelcome, eventsLoaded, error } = useAppContext();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    // Wait for events to load or fail before removing loading screen
+    if (eventsLoaded) {
+      // Add a small delay for better UX
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [eventsLoaded]);
 
   return (
     <>
       <AnimatePresence>{isLoading && <LoadingScreen />}</AnimatePresence>
 
-      <Map />
-      <DarkModeToggle />
-      <FeedPanel />
+      {!isLoading && (
+        <>
+          <Map />
+          <DarkModeToggle />
+          <FeedPanel />
 
-      <AnimatePresence>
-        {showWelcome && !isLoading && <WelcomeMenu />}
-      </AnimatePresence>
+          {/* Display error message if there was an API error */}
+          {error && <div className="error-notification">{error}</div>}
+
+          <AnimatePresence>{showWelcome && <WelcomeMenu />}</AnimatePresence>
+        </>
+      )}
     </>
   );
 }

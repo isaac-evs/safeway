@@ -1,14 +1,16 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import useMapbox from "../../hooks/useMapbox";
-import { mockEvents } from "../../data/mockEvents";
 import { useAppContext } from "../../context/AppContext";
 import EventDetails from "../EventDetails/EventDetails";
-import SearchBar from "../SearchBar/SearchBar"; // Import the SearchBar component
+import SearchBar from "../SearchBar/SearchBar";
 
 export default function Map() {
-  const { mapContainer, map } = useMapbox(mockEvents); // Get the map reference
-  const { darkMode, selectedEvent } = useAppContext();
+  // Get events from context instead of importing mockEvents
+  const { darkMode, selectedEvent, events } = useAppContext();
+
+  // Pass events from context to useMapbox hook
+  const { mapContainer, map } = useMapbox(events);
 
   return (
     <motion.div
@@ -18,10 +20,8 @@ export default function Map() {
       transition={{ duration: 1 }}
     >
       <div ref={mapContainer} className="w-full h-full" />
-
       {/* Pass the map reference to SearchBar */}
       <SearchBar map={map} />
-
       {/* Event Details Overlay */}
       {selectedEvent && <EventDetails event={selectedEvent} />}
     </motion.div>
