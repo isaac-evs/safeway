@@ -1,9 +1,10 @@
+// src/map/Map.jsx
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import useMapbox from "../../hooks/useMapbox";
 import { useAppContext } from "../../context/AppContext";
 import EventDetails from "../EventDetails/EventDetails";
-import SearchBar from "../SearchBar/SearchBar";
+import NavigationBar from "../NavigationBar/NavigationBar";
 
 export default function Map() {
   // Get events from context instead of importing mockEvents
@@ -20,8 +21,10 @@ export default function Map() {
       transition={{ duration: 1 }}
     >
       <div ref={mapContainer} className="w-full h-full" />
-      {/* Pass the map reference to SearchBar */}
-      <SearchBar map={map} />
+
+      {/* Navigation Bar */}
+      <NavigationBar map={map} />
+
       {/* Event Details Overlay */}
       {selectedEvent && <EventDetails event={selectedEvent} />}
     </motion.div>
