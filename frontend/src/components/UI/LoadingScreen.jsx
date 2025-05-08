@@ -33,7 +33,7 @@ export default function LoadingScreen() {
           darkMode ? "text-white" : "text-gray-800"
         }`}
       >
-        Loading Globe...
+        Cargando ...
       </p>
     </motion.div>
   );

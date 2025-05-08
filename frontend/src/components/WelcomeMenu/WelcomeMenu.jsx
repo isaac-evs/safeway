@@ -23,73 +23,92 @@ export default function WelcomeMenu() {
   const { closeWelcome, darkMode } = useAppContext();
   const [currentStep, setCurrentStep] = useState(0);
   const [animating, setAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
 
   // Tutorial steps
   const steps = [
     {
-      title: "Welcome to FreightSafe Navigator",
+      title: "Bienvenido a Safeway",
       description:
-        "Your essential tool for safe and efficient route planning across Mexico. Discover how it works with a quick tour.",
-      icon: <Truck size={28} />,
+        "Tu herramienta esencial para planificar rutas seguras y eficientes en todo México. Descubre cómo funciona con un recorrido rápido.",
+      icon: <Truck size={28} color="white" />,
       demo: "intro",
     },
     {
-      title: "Safety First Navigation",
+      title: "Navegación con Prioridad en la Seguridad",
       description:
-        "Automatically detects hazards, crime hotspots, and other safety concerns along your route.",
-      icon: <Shield size={28} />,
+        "Detecta automáticamente peligros, zonas con alta incidencia delictiva y otros riesgos a lo largo de tu ruta.",
+      icon: <Shield size={28} color="white" />,
       demo: "safety",
     },
     {
-      title: "Truck-Specific Routes",
+      title: "Rutas Especializadas para Camiones",
       description:
-        "Optimized for freight vehicles with custom height, weight, and cargo parameters for safer journeys.",
-      icon: <Truck size={28} />,
+        "Optimizadas para vehículos de carga con parámetros personalizados de altura, peso y tipo de carga para trayectos más seguros.",
+      icon: <Truck size={28} color="white" />,
       demo: "truck",
     },
     {
-      title: "Real-Time Events",
-      description: "Monitor events that may impact your route:",
+      title: "Eventos en Tiempo Real",
+      description: "Monitorea eventos que pueden afectar tu ruta:",
       categories: true,
-      icon: <AlertTriangle size={28} />,
+      icon: <AlertTriangle size={28} color="white" />,
       demo: "events",
     },
     {
-      title: "Start Navigating Safely",
+      title: "Comienza a Navegar Seguro",
       description:
-        "Your fleet's safety is our priority. Begin your journey with confidence and real-time insights.",
-      icon: <CheckCircle size={28} />,
+        "La seguridad de tu flota es nuestra prioridad. Inicia tu trayecto con confianza y datos en tiempo real.",
+      icon: <CheckCircle size={28} color="white" />,
       demo: "final",
     },
   ];
 
-  // Event category info
+  // Información de categorías de eventos
   const eventCategories = [
     {
       type: "crime",
-      title: "Crime Incidents",
-      description: "Areas with reported criminal activity",
+      title: "Incidentes Delictivos",
+      description: "Zonas con actividad delictiva reportada",
       color: "red",
       icon: <Shield size={18} />,
     },
     {
       type: "hazard",
-      title: "Road Hazards",
-      description: "Construction, accidents & obstacles",
+      title: "Peligros en la Vía",
+      description: "Construcción, accidentes y obstáculos",
       color: "yellow",
       icon: <AlertTriangle size={18} />,
     },
     {
       type: "infrastructure",
-      title: "Infrastructure",
-      description: "Road closures & construction",
+      title: "Infraestructura",
+      description: "Cierres viales y obras en curso",
       color: "blue",
       icon: <Building size={18} />,
     },
     {
       type: "social",
-      title: "Social Gatherings",
-      description: "Events causing traffic congestion",
+      title: "Concentraciones Sociales",
+      description: "Eventos que generan congestión vehicular",
       color: "green",
       icon: <Users size={18} />,
     },
@@ -176,7 +195,7 @@ export default function WelcomeMenu() {
                     transition={{ delay: 0.6, duration: 0.4 }}
                     className="text-gray-400"
                   >
-                    Enter destination...
+                    Ingresa el destino...
                   </motion.span>
                 </div>
                 <motion.div
@@ -202,7 +221,7 @@ export default function WelcomeMenu() {
                 >
                   <ArrowRight size={16} className="mr-2" />
                 </motion.div>
-                Simply enter your destination to start navigating
+                Simplemente ingresa tu destino para comenzar a navegar
               </div>
             </motion.div>
           </div>
@@ -223,7 +242,7 @@ export default function WelcomeMenu() {
                 <div className="flex items-center">
                   <Navigation className="text-blue-500 mr-2" size={18} />
                   <span className="font-medium text-sm">
-                    Mexico City → Guadalajara
+                    Nuevo León → Guadalajara
                   </span>
                 </div>
                 <X size={16} className="text-gray-400" />
@@ -242,7 +261,7 @@ export default function WelcomeMenu() {
                   >
                     <AlertTriangle size={14} className="mr-1 text-yellow-500" />
                     <span className="font-medium text-yellow-500">
-                      4 alerts
+                      4 alertas
                     </span>
                   </motion.div>
                 </div>
@@ -264,7 +283,7 @@ export default function WelcomeMenu() {
                 />
                 <div>
                   <div className="font-medium text-sm">
-                    Safety Alerts Detected
+                    Alertas de seguridad
                   </div>
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -274,11 +293,11 @@ export default function WelcomeMenu() {
                   >
                     <div className="flex items-center text-xs">
                       <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                      <span>Crime incident near km 102</span>
+                      <span>Incidente delictivo cerca del km 102</span>
                     </div>
                     <div className="flex items-center text-xs">
                       <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
-                      <span>Road construction at Michoacán</span>
+                      <span>Obras viales en Michoacán</span>
                     </div>
                   </motion.div>
                 </div>
@@ -300,7 +319,7 @@ export default function WelcomeMenu() {
             >
               <h4 className="font-medium text-sm mb-3 flex items-center">
                 <Truck size={16} className="mr-2 text-blue-500" />
-                Vehicle Parameters
+                Parametros del vehiculo
               </h4>
 
               <motion.div
@@ -314,7 +333,7 @@ export default function WelcomeMenu() {
                     darkMode ? "bg-gray-700" : "bg-gray-100"
                   }`}
                 >
-                  <div className="text-xs text-gray-500 mb-1">Height</div>
+                  <div className="text-xs text-gray-500 mb-1">Altura</div>
                   <motion.div
                     className="font-medium"
                     animate={{ scale: [1, 1.1, 1] }}
@@ -328,7 +347,7 @@ export default function WelcomeMenu() {
                     darkMode ? "bg-gray-700" : "bg-gray-100"
                   }`}
                 >
-                  <div className="text-xs text-gray-500 mb-1">Weight</div>
+                  <div className="text-xs text-gray-500 mb-1">Peso</div>
                   <div className="font-medium">20t</div>
                 </div>
                 <div
@@ -336,7 +355,7 @@ export default function WelcomeMenu() {
                     darkMode ? "bg-gray-700" : "bg-gray-100"
                   }`}
                 >
-                  <div className="text-xs text-gray-500 mb-1">Cargo</div>
+                  <div className="text-xs text-gray-500 mb-1">Carga</div>
                   <div className="font-medium">Standard</div>
                 </div>
               </motion.div>
@@ -348,14 +367,14 @@ export default function WelcomeMenu() {
                 className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 p-2 rounded"
               >
                 <CheckCircle size={12} className="inline mr-1" />
-                Route optimized for truck height clearance
+                Ruta optimizada para la altura del camión
                 <motion.div
                   className="mt-1 ml-5 text-xs"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.8 }}
                 >
-                  Avoiding 2 low bridges
+                  Evitando 2 puentes bajos
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -369,7 +388,7 @@ export default function WelcomeMenu() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className={`relative rounded-lg overflow-hidden h-44 shadow-lg ${
+              className={`relative rounded-lg overflow-hidden ${isMobile ? "h-36" : "h-44"} shadow-lg ${
                 darkMode ? "bg-gray-800" : "bg-white"
               } border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
             >
@@ -391,8 +410,10 @@ export default function WelcomeMenu() {
                 transition={{ delay: 0.6 }}
                 className="absolute top-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white border-2 border-white">
-                  <Shield size={12} />
+                <div
+                  className={`${isMobile ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-red-500 flex items-center justify-center text-white border-2 border-white`}
+                >
+                  <Shield size={isMobile ? 10 : 12} />
                 </div>
               </motion.div>
 
@@ -402,8 +423,10 @@ export default function WelcomeMenu() {
                 transition={{ delay: 0.8 }}
                 className="absolute top-1/3 right-1/3 transform -translate-y-1/2"
               >
-                <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white border-2 border-white">
-                  <AlertTriangle size={12} />
+                <div
+                  className={`${isMobile ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-yellow-500 flex items-center justify-center text-white border-2 border-white`}
+                >
+                  <AlertTriangle size={isMobile ? 10 : 12} />
                 </div>
               </motion.div>
 
@@ -413,8 +436,10 @@ export default function WelcomeMenu() {
                 transition={{ delay: 1 }}
                 className="absolute bottom-1/3 left-1/3 transform -translate-x-1/2"
               >
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white border-2 border-white">
-                  <Building size={12} />
+                <div
+                  className={`${isMobile ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-blue-500 flex items-center justify-center text-white border-2 border-white`}
+                >
+                  <Building size={isMobile ? 10 : 12} />
                 </div>
               </motion.div>
 
@@ -424,24 +449,28 @@ export default function WelcomeMenu() {
                 transition={{ delay: 1.2 }}
                 className="absolute bottom-1/4 right-1/4 transform -translate-y-1/2"
               >
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white border-2 border-white">
-                  <Users size={12} />
+                <div
+                  className={`${isMobile ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-green-500 flex items-center justify-center text-white border-2 border-white`}
+                >
+                  <Users size={isMobile ? 10 : 12} />
                 </div>
               </motion.div>
 
-              {/* Animated truck */}
-              <motion.div
-                className="absolute top-1/2 transform -translate-y-1/2"
-                initial={{ x: -20 }}
-                animate={{ x: 240 }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4,
-                  repeatType: "loop",
-                }}
-              >
-                <Truck size={20} className="text-gray-800 dark:text-white" />
-              </motion.div>
+              {/* Animated truck - only visible on non-mobile devices */}
+              {!isMobile && (
+                <motion.div
+                  className="absolute top-1/2 transform -translate-y-1/2"
+                  initial={{ x: -20 }}
+                  animate={{ x: 240 }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 4,
+                    repeatType: "loop",
+                  }}
+                >
+                  <Truck size={20} className="text-gray-800 dark:text-white" />
+                </motion.div>
+              )}
             </motion.div>
           </div>
         );
@@ -455,12 +484,14 @@ export default function WelcomeMenu() {
               transition={{ delay: 0.3 }}
               className="relative flex justify-center items-center"
             >
-              <div className="relative w-32 h-32 flex items-center justify-center">
+              <div
+                className={`relative ${isMobile ? "w-24 h-24" : "w-32 h-32"} flex items-center justify-center`}
+              >
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className={`absolute w-32 h-32 rounded-full ${
+                  className={`absolute ${isMobile ? "w-24 h-24" : "w-32 h-32"} rounded-full ${
                     darkMode ? "bg-blue-900/30" : "bg-blue-100"
                   }`}
                 ></motion.div>
@@ -476,7 +507,10 @@ export default function WelcomeMenu() {
                   }}
                   className="absolute w-full h-full flex items-center justify-center"
                 >
-                  <Globe size={80} className="text-blue-500 opacity-50" />
+                  <Globe
+                    size={isMobile ? 60 : 80}
+                    className="text-blue-500 opacity-50"
+                  />
                 </motion.div>
 
                 <motion.div
@@ -487,7 +521,7 @@ export default function WelcomeMenu() {
                 >
                   <div className="relative">
                     <Truck
-                      size={28}
+                      size={isMobile ? 22 : 28}
                       className="text-blue-600 dark:text-blue-400"
                     />
                     <motion.div
@@ -497,9 +531,12 @@ export default function WelcomeMenu() {
                         duration: 1,
                         delay: 1.5,
                       }}
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
+                      className={`absolute -top-1 -right-1 ${isMobile ? "w-3 h-3" : "w-4 h-4"} rounded-full bg-green-500 flex items-center justify-center`}
                     >
-                      <CheckCircle size={10} className="text-white" />
+                      <CheckCircle
+                        size={isMobile ? 8 : 10}
+                        className="text-white"
+                      />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -510,13 +547,13 @@ export default function WelcomeMenu() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
-              className="mt-6 text-center"
+              className="mt-4 text-center"
             >
               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                Real-time route monitoring and safety alerts
+                Monitoreo de ruta en tiempo real y alertas de seguridad
               </div>
               <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Navigate with confidence across Mexico
+                Navega con confianza por todo México
               </div>
             </motion.div>
           </div>
@@ -529,13 +566,13 @@ export default function WelcomeMenu() {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm overflow-y-auto py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div
-        className={`rounded-xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden ${
+        className={`rounded-xl shadow-2xl ${isMobile ? "w-[95%]" : "max-w-3xl w-full mx-4"} overflow-hidden ${
           darkMode
             ? "bg-gray-900 text-white border border-gray-800"
             : "bg-white text-gray-800 border border-gray-200"
@@ -549,16 +586,18 @@ export default function WelcomeMenu() {
         }}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-800 dark:border-gray-700 flex justify-between items-center">
+        <div
+          className={`${isMobile ? "p-4" : "p-6"} border-b border-gray-800 dark:border-gray-700 flex justify-between items-center`}
+        >
           <div className="flex items-center">
             <motion.div
-              className="mr-4"
+              className={`${isMobile ? "mr-3" : "mr-4"}`}
               initial={{ rotate: -10, scale: 0.8 }}
               animate={{ rotate: 0, scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                className={`${isMobile ? "w-10 h-10" : "w-12 h-12"} rounded-full flex items-center justify-center ${
                   darkMode ? "bg-blue-600" : "bg-blue-500"
                 }`}
               >
@@ -567,7 +606,7 @@ export default function WelcomeMenu() {
             </motion.div>
             <div>
               <motion.h2
-                className="text-2xl font-bold"
+                className={`${isMobile ? "text-xl" : "text-2xl"} font-bold`}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -580,7 +619,7 @@ export default function WelcomeMenu() {
             onClick={closeWelcome}
             className={`p-2 rounded-full hover:bg-gray-800/20`}
           >
-            <X size={20} />
+            <X size={isMobile ? 18 : 20} />
           </button>
         </div>
 
@@ -607,9 +646,11 @@ export default function WelcomeMenu() {
         </div>
 
         {/* Main content */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div
+          className={`${isMobile ? "grid grid-cols-1" : "grid md:grid-cols-2"} gap-6`}
+        >
           {/* Left side - Description */}
-          <div className="p-6">
+          <div className={`${isMobile ? "p-4" : "p-6"}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={`text-${currentStep}`}
@@ -632,7 +673,7 @@ export default function WelcomeMenu() {
                     variants={containerVariants}
                     className="mb-4 space-y-2"
                   >
-                    {eventCategories.map((category, index) => (
+                    {eventCategories.map((category) => (
                       <motion.div
                         key={category.type}
                         variants={itemVariants}
@@ -641,7 +682,7 @@ export default function WelcomeMenu() {
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full bg-${category.color}-500 flex items-center justify-center text-white mr-3`}
+                          className={`${isMobile ? "w-7 h-7" : "w-8 h-8"} rounded-full bg-${category.color}-500 flex items-center justify-center text-white mr-3`}
                         >
                           {category.icon}
                         </div>
@@ -661,31 +702,37 @@ export default function WelcomeMenu() {
             </AnimatePresence>
           </div>
 
-          {/* Right side - Demo/Visualization */}
-          <div
-            className={`p-6 flex items-center ${darkMode ? "bg-gray-800/50" : "bg-gray-50"} rounded-tl-3xl`}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`demo-${currentStep}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full"
-              >
-                {renderDemoContent()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {/* Right side - Demo/Visualization (hidden on mobile if at the categories step) */}
+          {!(isMobile && currentStepData.categories) && (
+            <div
+              className={`${isMobile ? "p-4" : "p-6"} flex items-center ${
+                darkMode ? "bg-gray-800/50" : "bg-gray-50"
+              } ${isMobile ? "" : "rounded-tl-3xl"}`}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`demo-${currentStep}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  {renderDemoContent()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         {/* Footer with navigation buttons */}
-        <div className="p-6 border-t border-gray-800 dark:border-gray-700 flex justify-between">
+        <div
+          className={`${isMobile ? "p-4" : "p-6"} border-t border-gray-800 dark:border-gray-700 flex justify-between`}
+        >
           <div className="flex space-x-2">
             {currentStep > 0 && (
               <button
                 onClick={prevStep}
-                className={`px-4 py-2 rounded-lg flex items-center ${
+                className={`${isMobile ? "px-3 py-1.5" : "px-4 py-2"} rounded-lg flex items-center ${
                   darkMode
                     ? "bg-gray-800 hover:bg-gray-700"
                     : "bg-gray-200 hover:bg-gray-300"
@@ -693,27 +740,29 @@ export default function WelcomeMenu() {
                 disabled={animating}
               >
                 <ChevronLeft size={16} className="mr-1" />
-                Back
+                Atrás
               </button>
             )}
 
-            {!currentStepData.final && currentStep < steps.length - 2 && (
-              <button
-                onClick={skipToFinal}
-                className={`px-4 py-2 rounded-lg ${
-                  darkMode
-                    ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-                } text-sm transition-colors`}
-                disabled={animating}
-              >
-                Skip Tour
-              </button>
-            )}
+            {!currentStepData.final &&
+              currentStep < steps.length - 2 &&
+              !isMobile && (
+                <button
+                  onClick={skipToFinal}
+                  className={`px-4 py-2 rounded-lg ${
+                    darkMode
+                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                  } text-sm transition-colors`}
+                  disabled={animating}
+                >
+                  Saltar
+                </button>
+              )}
           </div>
 
           <motion.button
-            className={`px-6 py-2 rounded-lg font-medium transition-colors flex items-center ${
+            className={`${isMobile ? "px-4 py-1.5" : "px-6 py-2"} rounded-lg font-medium transition-colors flex items-center ${
               darkMode
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-blue-500 hover:bg-blue-600 text-white"
@@ -723,7 +772,7 @@ export default function WelcomeMenu() {
             whileTap={{ scale: 0.97 }}
             disabled={animating}
           >
-            {currentStepData.final ? "Get Started" : "Next"}
+            {currentStepData.final ? "Comenzar" : "Siguiente"}
             <ChevronRight size={18} className="ml-1" />
           </motion.button>
         </div>
