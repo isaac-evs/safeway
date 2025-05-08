@@ -9,6 +9,7 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Clock,
 } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 
@@ -249,160 +250,297 @@ export default function NavigationBar({ map }) {
     return nearbyMarkers.filter((marker) => marker.type === type).length;
   };
 
+  // Calculate total alerts
+  const totalAlerts = nearbyMarkers.length;
+
+  // Estimate travel time based on route distance (simple approximation)
+  const estimateTravelTime = () => {
+    if (!route) return "";
+    const distance = getRouteDistance(route);
+    const avgSpeedKmh = 60; // Average speed in km/h
+    const hours = Math.floor(distance / avgSpeedKmh);
+    const minutes = Math.round((distance / avgSpeedKmh - hours) * 60);
+    return `${hours}h ${minutes}m`;
+  };
+
   return (
     <motion.div
-      className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-10 ${
-        darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
-      } rounded-lg shadow-lg overflow-hidden transition-all duration-300 w-full max-w-md`}
+      className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md`}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, type: "spring", stiffness: 120 }}
     >
       {/* Main navigation bar */}
-      <div className="px-4 py-3">
+      <div className="mx-auto w-full max-w-sm">
         {isNavigating ? (
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <Navigation className="mr-2 text-blue-500" size={20} />
-                <span className="font-semibold">{destination}</span>
-              </div>
-              <div className="flex items-center">
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="mr-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  {isExpanded ? (
-                    <ChevronUp size={18} />
-                  ) : (
-                    <ChevronDown size={18} />
-                  )}
-                </button>
+          <>
+            {/* Navigation card */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className={`p-3 rounded-lg shadow-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+            >
+              <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div className="flex items-center">
+                  <Navigation className="text-blue-500 mr-2" size={18} />
+                  <span
+                    className={`font-medium text-sm ${darkMode ? "text-white" : ""}`}
+                  >
+                    Your location → {destination}
+                  </span>
+                </div>
                 <button
                   onClick={clearNavigation}
-                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
-                  <X size={18} />
+                  <X
+                    size={16}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  />
                 </button>
               </div>
-            </div>
 
-            {/* Route summary - expanded view */}
+              <div className="flex justify-between items-center text-sm py-1">
+                <div className="flex items-center">
+                  <Clock
+                    size={14}
+                    className={`mr-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                  />
+                  <span className={darkMode ? "text-gray-200" : ""}>
+                    {estimateTravelTime()}
+                  </span>
+                </div>
+
+                {totalAlerts > 0 && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="flex items-center"
+                  >
+                    <AlertTriangle size={14} className="mr-1 text-yellow-500" />
+                    <span className="font-medium text-yellow-500">
+                      {totalAlerts} alert{totalAlerts !== 1 ? "s" : ""}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center mt-2">
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className={`text-xs flex items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 ${
+                    isExpanded ? "opacity-70" : ""
+                  }`}
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp size={14} className="mr-1" />
+                      Hide details
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={14} className="mr-1" />
+                      Show details
+                    </>
+                  )}
+                </button>
+
+                {route && (
+                  <span
+                    className={`text-xs ${darkMode ? "text-gray-300" : "text-gray-500"}`}
+                  >
+                    {getRouteDistance(route).toFixed(1)} km
+                  </span>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Alerts card */}
+            {nearbyMarkers.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className={`mt-4 p-3 rounded-lg border-l-4 border-yellow-500 shadow-lg ${
+                  darkMode ? "bg-gray-800/90" : "bg-white"
+                }`}
+              >
+                <div className="flex">
+                  <AlertTriangle
+                    className="text-yellow-500 mr-2 flex-shrink-0"
+                    size={18}
+                  />
+                  <div>
+                    <div
+                      className={`font-medium text-sm ${darkMode ? "text-white" : ""}`}
+                    >
+                      Safety Alerts Detected
+                    </div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.2 }}
+                      className="mt-2 space-y-1"
+                    >
+                      {getMarkerCountByType("crime") > 0 && (
+                        <div className="flex items-center text-xs">
+                          <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                          <span className={darkMode ? "text-gray-200" : ""}>
+                            {getMarkerCountByType("crime")} crime incident
+                            {getMarkerCountByType("crime") !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      )}
+                      {getMarkerCountByType("hazard") > 0 && (
+                        <div className="flex items-center text-xs">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
+                          <span className={darkMode ? "text-gray-200" : ""}>
+                            {getMarkerCountByType("hazard")} hazard
+                            {getMarkerCountByType("hazard") !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      )}
+                      {getMarkerCountByType("infrastructure") > 0 && (
+                        <div className="flex items-center text-xs">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                          <span className={darkMode ? "text-gray-200" : ""}>
+                            {getMarkerCountByType("infrastructure")}{" "}
+                            infrastructure issue
+                            {getMarkerCountByType("infrastructure") !== 1
+                              ? "s"
+                              : ""}
+                          </span>
+                        </div>
+                      )}
+                      {getMarkerCountByType("social") > 0 && (
+                        <div className="flex items-center text-xs">
+                          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                          <span className={darkMode ? "text-gray-200" : ""}>
+                            {getMarkerCountByType("social")} social event
+                            {getMarkerCountByType("social") !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Expanded details */}
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="mt-2 overflow-hidden"
+                  className={`mt-2 p-3 rounded-lg ${
+                    darkMode ? "bg-gray-800/80" : "bg-gray-50"
+                  } border ${
+                    darkMode ? "border-gray-700" : "border-gray-200"
+                  } shadow-sm overflow-hidden`}
                 >
                   <div className="text-sm space-y-2">
-                    <p>
-                      <span className="font-medium">From:</span> Your location
+                    <p className="flex items-center">
+                      <span
+                        className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
+                      >
+                        From:
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        Your location
+                      </span>
                     </p>
-                    <p>
-                      <span className="font-medium">To:</span> {destination}
+                    <p className="flex items-center">
+                      <span
+                        className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
+                      >
+                        To:
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        {destination}
+                      </span>
                     </p>
                     {route && (
-                      <p>
-                        <span className="font-medium">Distance:</span>{" "}
-                        {getRouteDistance(route).toFixed(1)} km
+                      <p className="flex items-center">
+                        <span
+                          className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
+                        >
+                          Distance:
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-300">
+                          {getRouteDistance(route).toFixed(1)} km
+                        </span>
                       </p>
                     )}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Markers alert section */}
-            {nearbyMarkers.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={`mt-3 p-2 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
+          </>
+        ) : (
+          <motion.div
+            className={`p-3 rounded-lg shadow-lg ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            } border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+          >
+            <form onSubmit={handleSubmit} className="flex items-center">
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  value={destination}
+                  onChange={handleDestinationChange}
+                  placeholder="Enter destination..."
+                  className={`w-full py-2 pl-8 pr-4 rounded-lg border ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-700 placeholder-gray-500"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                />
+                <MapPin
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading || !destination}
+                className={`ml-2 px-3 py-2 rounded-lg ${
+                  isLoading || !destination
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                } text-white flex items-center transition duration-200`}
               >
-                <div className="flex items-center mb-1">
-                  <AlertTriangle size={16} className="text-yellow-500 mr-1" />
-                  <span className="font-medium text-sm">
-                    {nearbyMarkers.length} event
-                    {nearbyMarkers.length !== 1 ? "s" : ""} detected along your
-                    route
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {getMarkerCountByType("crime") > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
-                      {getMarkerCountByType("crime")} crime
-                    </span>
-                  )}
-                  {getMarkerCountByType("hazard") > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
-                      {getMarkerCountByType("hazard")} hazard
-                    </span>
-                  )}
-                  {getMarkerCountByType("infrastructure") > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
-                      {getMarkerCountByType("infrastructure")} infrastructure
-                    </span>
-                  )}
-                  {getMarkerCountByType("social") > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                      {getMarkerCountByType("social")} social
-                    </span>
-                  )}
-                </div>
+                {isLoading ? (
+                  <span>Loading...</span>
+                ) : (
+                  <>
+                    <Navigation size={16} className="mr-1" />
+                    <span>Go</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Error message */}
+            {errorMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-red-500 text-sm flex items-start"
+              >
+                <AlertTriangle
+                  size={14}
+                  className="mr-1 mt-0.5 flex-shrink-0"
+                />
+                <span>{errorMessage}</span>
               </motion.div>
             )}
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex items-center">
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                value={destination}
-                onChange={handleDestinationChange}
-                placeholder="Enter destination..."
-                className={`w-full py-2 pl-8 pr-4 rounded-lg border ${
-                  darkMode
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-700 placeholder-gray-500"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-              <MapPin
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading || !destination}
-              className={`ml-2 px-3 py-2 rounded-lg ${
-                isLoading || !destination
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600"
-              } text-white flex items-center transition duration-200`}
-            >
-              {isLoading ? (
-                <span>Loading...</span>
-              ) : (
-                <>
-                  <Navigation size={16} className="mr-1" />
-                  <span>Go</span>
-                </>
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* Error message */}
-        {errorMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2 text-red-500 text-sm"
-          >
-            {errorMessage}
           </motion.div>
         )}
       </div>
