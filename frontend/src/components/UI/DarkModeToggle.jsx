@@ -1,8 +1,33 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAppContext } from "../../context/AppContext";
 
 export default function DarkModeToggle() {
   const { darkMode, toggleDarkMode } = useAppContext();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile on initial render and on window resize
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is a common breakpoint for mobile devices
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
+
+  // Don't render the component at all on mobile
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <motion.button

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/AppContext";
 
@@ -6,6 +6,25 @@ export default function FeedPanel() {
   // Replace mockEvents with events from context
   const { darkMode, setSelectedEvent, events } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile on initial render and window resize
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is a common breakpoint for mobile devices
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
 
   const togglePanel = () => {
     setIsOpen(!isOpen);
@@ -17,39 +36,41 @@ export default function FeedPanel() {
 
   return (
     <div className="fixed top-0 left-0 h-full z-20">
-      {/* Toggle Button */}
-      <button
-        onClick={togglePanel}
-        className={`absolute top-4 ${isOpen ? "left-72" : "left-4"} z-30 p-2 rounded-full shadow-lg transition-all duration-300 ${
-          darkMode
-            ? "bg-gray-800 text-white hover:bg-gray-700"
-            : "bg-white text-gray-800 hover:bg-gray-100"
-        }`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Toggle Button - Hidden on Mobile */}
+      {!isMobile && (
+        <button
+          onClick={togglePanel}
+          className={`absolute top-4 ${isOpen ? "left-72" : "left-4"} z-30 p-2 rounded-full shadow-lg transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800 text-white hover:bg-gray-700"
+              : "bg-white text-gray-800 hover:bg-gray-100"
+          }`}
         >
-          {isOpen ? (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          ) : (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          )}
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            {isOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            )}
+          </svg>
+        </button>
+      )}
 
       {/* Panel Content */}
       <AnimatePresence>
