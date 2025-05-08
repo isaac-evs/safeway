@@ -84,7 +84,9 @@ export default function FeedPanel() {
               darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
             }`}
           >
-            <h2 className="text-xl font-bold mb-4 text-center">Recent News</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Eventos Recientes
+            </h2>
 
             <div className="space-y-4">
               {events.map((event) => (

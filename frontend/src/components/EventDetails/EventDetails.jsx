@@ -70,7 +70,7 @@ export default function EventDetails({ event }) {
             whileTap={{ scale: 0.95 }}
             onClick={handleReadMore}
           >
-            Read More
+            Leer Más
           </motion.button>
         </div>
       </div>

@@ -289,7 +289,7 @@ export default function NavigationBar({ map }) {
                   <span
                     className={`font-medium text-sm ${darkMode ? "text-white" : ""}`}
                   >
-                    Your location → {destination}
+                    Tu ubicación → {destination}
                   </span>
                 </div>
                 <button
@@ -323,7 +323,7 @@ export default function NavigationBar({ map }) {
                   >
                     <AlertTriangle size={14} className="mr-1 text-yellow-500" />
                     <span className="font-medium text-yellow-500">
-                      {totalAlerts} alert{totalAlerts !== 1 ? "s" : ""}
+                      {totalAlerts} alerta{totalAlerts !== 1 ? "s" : ""}
                     </span>
                   </motion.div>
                 )}
@@ -339,12 +339,12 @@ export default function NavigationBar({ map }) {
                   {isExpanded ? (
                     <>
                       <ChevronUp size={14} className="mr-1" />
-                      Hide details
+                      Esconder detalles
                     </>
                   ) : (
                     <>
                       <ChevronDown size={14} className="mr-1" />
-                      Show details
+                      Mostrar detalles
                     </>
                   )}
                 </button>
@@ -378,7 +378,7 @@ export default function NavigationBar({ map }) {
                     <div
                       className={`font-medium text-sm ${darkMode ? "text-white" : ""}`}
                     >
-                      Safety Alerts Detected
+                      Alertas de Seguridad
                     </div>
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -390,7 +390,7 @@ export default function NavigationBar({ map }) {
                         <div className="flex items-center text-xs">
                           <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
                           <span className={darkMode ? "text-gray-200" : ""}>
-                            {getMarkerCountByType("crime")} crime incident
+                            {getMarkerCountByType("crime")} Incidente delictivo
                             {getMarkerCountByType("crime") !== 1 ? "s" : ""}
                           </span>
                         </div>
@@ -399,7 +399,7 @@ export default function NavigationBar({ map }) {
                         <div className="flex items-center text-xs">
                           <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
                           <span className={darkMode ? "text-gray-200" : ""}>
-                            {getMarkerCountByType("hazard")} hazard
+                            {getMarkerCountByType("hazard")} Peligro
                             {getMarkerCountByType("hazard") !== 1 ? "s" : ""}
                           </span>
                         </div>
@@ -408,10 +408,10 @@ export default function NavigationBar({ map }) {
                         <div className="flex items-center text-xs">
                           <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                           <span className={darkMode ? "text-gray-200" : ""}>
-                            {getMarkerCountByType("infrastructure")}{" "}
-                            infrastructure issue
+                            {getMarkerCountByType("infrastructure")} Problema de
+                            infraestructura
                             {getMarkerCountByType("infrastructure") !== 1
-                              ? "s"
+                              ? ""
                               : ""}
                           </span>
                         </div>
@@ -420,8 +420,8 @@ export default function NavigationBar({ map }) {
                         <div className="flex items-center text-xs">
                           <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
                           <span className={darkMode ? "text-gray-200" : ""}>
-                            {getMarkerCountByType("social")} social event
-                            {getMarkerCountByType("social") !== 1 ? "s" : ""}
+                            {getMarkerCountByType("social")} Evento social
+                            {getMarkerCountByType("social") !== 1 ? "es" : ""}
                           </span>
                         </div>
                       )}
@@ -450,17 +450,17 @@ export default function NavigationBar({ map }) {
                       <span
                         className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
                       >
-                        From:
+                        Desde:
                       </span>
                       <span className="text-gray-600 dark:text-gray-300">
-                        Your location
+                        Tu ubicación
                       </span>
                     </p>
                     <p className="flex items-center">
                       <span
                         className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
                       >
-                        To:
+                        Hasta:
                       </span>
                       <span className="text-gray-600 dark:text-gray-300">
                         {destination}
@@ -471,7 +471,7 @@ export default function NavigationBar({ map }) {
                         <span
                           className={`font-medium mr-2 ${darkMode ? "text-white" : ""}`}
                         >
-                          Distance:
+                          Distancia:
                         </span>
                         <span className="text-gray-600 dark:text-gray-300">
                           {getRouteDistance(route).toFixed(1)} km
@@ -495,7 +495,7 @@ export default function NavigationBar({ map }) {
                   type="text"
                   value={destination}
                   onChange={handleDestinationChange}
-                  placeholder="Enter destination..."
+                  placeholder="Ingresa el destino..."
                   className={`w-full py-2 pl-8 pr-4 rounded-lg border ${
                     darkMode
                       ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
@@ -517,11 +517,11 @@ export default function NavigationBar({ map }) {
                 } text-white flex items-center transition duration-200`}
               >
                 {isLoading ? (
-                  <span>Loading...</span>
+                  <span>Cargando...</span>
                 ) : (
                   <>
                     <Navigation size={16} className="mr-1" />
-                    <span>Go</span>
+                    <span>Ir</span>
                   </>
                 )}
               </button>

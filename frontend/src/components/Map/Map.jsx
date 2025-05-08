@@ -308,7 +308,7 @@ export default function Map() {
                 >
                   <span className="flex items-center">
                     <Layers size={16} className="mr-2" />
-                    Traffic
+                    Tráfico
                   </span>
                   <div
                     className={`w-4 h-4 rounded-full ${
@@ -329,7 +329,7 @@ export default function Map() {
                 >
                   <span className="flex items-center">
                     <Layers size={16} className="mr-2" />
-                    Terrain
+                    Terreno
                   </span>
                   <div
                     className={`w-4 h-4 rounded-full ${
@@ -350,7 +350,7 @@ export default function Map() {
                 >
                   <span className="flex items-center">
                     <Layers size={16} className="mr-2" />
-                    Satellite
+                    Satélite
                   </span>
                   <div
                     className={`w-4 h-4 rounded-full ${
